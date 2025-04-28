@@ -105,7 +105,7 @@ def simulate_worker(hero_cards, board_cards, deck_snapshot, simulations):
         total += 1
     return win, tie, total
 
-def simulate_with_partial_board(hero_cards, board_cards, simulations=100000, threads=4):
+def simulate_with_partial_board(hero_cards, board_cards, simulations=1000, threads=4):
     used = set(hero_cards + board_cards)
     full_deck = [c for c in current_deck if c not in used]
 
@@ -163,8 +163,8 @@ if __name__ == "__main__":
             print("!! 輸入格式錯誤，請用正確格式（例如 2a, 3k）")
             continue
 
-        print(f">> 模擬中（手牌 + {len(board_cards)} 張公共牌，模擬 1000000 次 × 4 threads）...")
-        win, tie = simulate_with_partial_board(hero_cards, board_cards, simulations=1000000, threads=4)
+        print(f">> 模擬中（手牌 + {len(board_cards)} 張公共牌，模擬 1000 次 × 4 threads）...")
+        win, tie = simulate_with_partial_board(hero_cards, board_cards, simulations=1000, threads=2)
         print(f">> 勝率：{win:.4%}，平手率：{tie:.4%}")
         ultrasonic_oled.main()
         ultrasonic_oled.display_text(f"{win:.1%}, {tie:.1%}")
