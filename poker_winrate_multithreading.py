@@ -3,6 +3,7 @@ from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 import random
 import PokerInput
+import ultrasonic_oled
 
 # ----------- 基礎牌物件與解析 ----------- #
 class Card:
@@ -165,5 +166,7 @@ if __name__ == "__main__":
         print(f">> 模擬中（手牌 + {len(board_cards)} 張公共牌，模擬 1000000 次 × 4 threads）...")
         win, tie = simulate_with_partial_board(hero_cards, board_cards, simulations=1000000, threads=4)
         print(f">> 勝率：{win:.4%}，平手率：{tie:.4%}")
+        ultrasonic_oled.main()
+        ultrasonic_oled.display_text(f"{win:.1%}, {tie:.1%}")
 
         remove_used_cards(hero_cards + board_cards)

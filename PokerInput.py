@@ -21,6 +21,8 @@ from traceback import print_exc
 from aiy.board import Board
 from aiy.voice.audio import AudioFormat, play_wav, record_file, Recorder
 
+import ultrasonic_oled
+
 Lab = AudioFormat(sample_rate_hz=16000, num_channels=1, bytes_per_sample=2)
 
 
@@ -40,6 +42,14 @@ def record():
                 time.sleep(0.5)
 
         record_file(Lab, filename="recording.wav", wait=wait, filetype="wav")
+
+def record2():
+    print("place object in front of the sensor to start recording")
+    ultrasonic_oled.wait_until_object_detected()
+    print("recording...")
+    record_file(Lab, filename="recording.wav", wait=ultrasonic_oled.wait_until_object_detected, filetype="wav")
+
+
 
 '''
 
@@ -92,7 +102,47 @@ if __name__ == '__main__':
 
 
 import re
+from typing import List
 
+def split_card_string(card_string: str) -> List[str]:
+       
+        if not card_string:
+            return []
+
+        # Define patterns for suits and ranks using regular expressions
+        # Using non-capturing groups (?:...) inside for clarity, but capturing the whole card.
+        suit_pattern = "(愛心|菱形|黑桃|梅花)"
+        rank_pattern = "(十一|十二|十三|二|三|四|五|六|七|八|九|十|一)"
+
+        # Create the regex pattern for a single card (Suit followed by Rank).
+        # The outer parenthesis captures the entire "SuitRank" string.
+        # We use re.compile for slightly better performance if used repeatedly.
+        card_pattern_regex = re.compile(f"({suit_pattern}{rank_pattern})")
+
+        # Use findall to get all non-overlapping matches.
+        # When the pattern has capturing groups, findall returns a list of tuples,
+        # where each tuple contains the strings matched by the groups.
+        # Example: for input "HeartFour", findall returns [('HeartFour', 'Heart', 'Four')]
+        matches = card_pattern_regex.findall(card_string)
+
+        # We are interested in the full match for each card, which is the first element
+        # in each tuple returned by findall (corresponding to the outermost capturing group).
+        result = [match[0] for match in matches]
+
+        # --- Validation ---
+        # Check if the concatenated matches perfectly reconstruct the original string.
+        # This ensures the input string *only* contained valid, contiguous cards
+        # and adheres strictly to the [Suit][Rank]* format.
+        if "".join(result) != card_string:
+            raise ValueError(
+                f"Input string '{card_string}' is not a valid sequence of SuitRank cards."
+                " Check for typos, invalid suits/ranks, or extra characters."
+            )
+        # --- End Validation ---
+
+        return result
+
+        
 def parse_poker_input(input_str: str) -> str | None:
     """
     Parses a poker card string from format "[SuitName][RankNameInEnglish]"
@@ -192,7 +242,7 @@ def audio_to_text():
     url = 'http://140.116.245.149:5002/proxy'
     file_path = 'audio.wav' 
     file_path = 'recording.wav' # added
-
+    total_result= ""
     with open(file_path, 'rb') as file:
         raw_audio = file.read()
 
@@ -216,31 +266,25 @@ def audio_to_text():
         print("跳過")
         return "skip"
     else :
-        result = parse_poker_input(data['sentence'])
-        if result is None:
-            print("無效的輸入")
-            return "skip"
-        else:
-            print(f"有效的輸入: {result}")
-            return result
+        cards_result = split_card_string(data['sentence'])
+        for card in cards_result:
+            result = parse_poker_input(card)
+            if result is None:
+                print("無效的輸入")
+                return "skip"
+            else:
+                print(f"有效的輸入: {result}")
+                total_result += result + " "
+    return total_result.strip()
     
 
 
 def get_cards_record_parse() -> str:
-    total_result= ""
-    while True:
-        record()
-        print("播放音檔...")
-        play_wav("recording.wav")
-        result = audio_to_text()
+    ultrasonic_oled.main()
+    record2()
+    print("播放音檔...")
+    play_wav("recording.wav")
+    result = audio_to_text()
 
-        if os.path.exists("recording.wav"):
-            os.remove("recording.wav")
-
-        if result == "skip":
-            break
-        else:
-            total_result += result.strip() + " "
-
-    return total_result.strip()
+    return result
 
