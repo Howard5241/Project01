@@ -116,21 +116,6 @@ def main():
     draw = ImageDraw.Draw(image)
     font = ImageFont.truetype("./ARIALUNI.TTF", 15)
 
-    try:
-        print("開始測距，按 Ctrl+C 停止")
-        while True:
-            dist = distance()
-            text = "Distance = %.1f cm" % dist
-            # display_text(disp, draw, font, text)
-            display_text(text)
-            print(text)
-            time.sleep(1)
-
-    except KeyboardInterrupt:
-        print("terminated")
-        GPIO.cleanup()
-        disp.clear()
-        disp.display()
 
 
 def wait_until_object_detected():
@@ -140,10 +125,11 @@ def wait_until_object_detected():
             dist = distance()
             text = "Distance = %.1f cm" % dist
             print(text)
-            time.sleep(0.2)
-            if dist < 50:
-                print(f"物體接近({dist} cm)，停止測距")
+            
+            if dist < 21:
+                print(f"物體接近({dist:.1f} cm)，停止測距")
                 break
+            time.sleep(1)
 
     except KeyboardInterrupt:
         print("terminated")

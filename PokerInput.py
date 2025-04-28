@@ -46,7 +46,10 @@ def record():
 def record2():
     print("place object in front of the sensor to start recording")
     ultrasonic_oled.wait_until_object_detected()
+    print("detected object")
+    time.sleep(2)
     print("recording...")
+    time.sleep(1)
     record_file(Lab, filename="recording.wav", wait=ultrasonic_oled.wait_until_object_detected, filetype="wav")
 
 
@@ -112,7 +115,7 @@ def split_card_string(card_string: str) -> List[str]:
         # Define patterns for suits and ranks using regular expressions
         # Using non-capturing groups (?:...) inside for clarity, but capturing the whole card.
         suit_pattern = "(愛心|菱形|黑桃|梅花)"
-        rank_pattern = "(十一|十二|十三|二|三|四|五|六|七|八|九|十|一)"
+        rank_pattern = "(十一|十二|十三|二|三|四|五|六|七|八|九|十|一|11|10|12|13|1|2|3|4|5|6|7|8|9|0)"
 
         # Create the regex pattern for a single card (Suit followed by Rank).
         # The outer parenthesis captures the entire "SuitRank" string.
@@ -133,11 +136,11 @@ def split_card_string(card_string: str) -> List[str]:
         # Check if the concatenated matches perfectly reconstruct the original string.
         # This ensures the input string *only* contained valid, contiguous cards
         # and adheres strictly to the [Suit][Rank]* format.
-        if "".join(result) != card_string:
-            raise ValueError(
-                f"Input string '{card_string}' is not a valid sequence of SuitRank cards."
-                " Check for typos, invalid suits/ranks, or extra characters."
-            )
+        #if "".join(result) != card_string:
+        #    raise ValueError(
+        #        f"Input string '{card_string}' is not a valid sequence of SuitRank cards."
+        #        " Check for typos, invalid suits/ranks, or extra characters."
+        #    )
         # --- End Validation ---
 
         return result
@@ -187,7 +190,13 @@ def parse_poker_input(input_str: str) -> str | None:
         "時": "10",
         "十一": "j",    # Jack
         "十二": "q",    # Queen
-        "十三": "k"   # King
+        "十三": "k",   # King
+        "1": "a",
+        "2": "2",
+        "3": "3",
+        "4": "4",
+        "5": "5",
+        "6": "6",
     }
 
     # Find the suit part
